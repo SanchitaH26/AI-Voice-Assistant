@@ -143,7 +143,7 @@ load_dotenv()
 ## Running the App
 
 ```bash
-python app.py
+python voice_chat_assistant.py
 ```
 
 The app will start at `http://localhost:5000`.
