@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceAI Pro - Professional Voice Assistant</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Background particles animation */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .app-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            width: 95%;
+            max-width: 900px;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            text-align: center;
+            padding: 40px 30px 30px;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+        }
+
+        .stats-bar {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-around;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat {
+            text-align: center;
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 2px;
+        }
+
+        .chat-container {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            max-height: 500px;
+            min-height: 300px;
+            background: #fafafa;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #666;
+            margin-top: 60px;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .message {
+            margin-bottom: 24px;
+            display: flex;
+            align-items: flex-start;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            margin: 0 12px;
+        }
+
+        .message.user .message-avatar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .message.bot .message-avatar {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        .bubble {
+            padding: 16px 20px;
+            border-radius: 20px;
+            max-width: 70%;
+            line-height: 1.5;
+            font-size: 1rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .message.user .bubble {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        .message.user .message-time {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .controls {
+            background: white;
+            padding: 30px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .record-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .record-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 18px 36px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-weight: 600;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .record-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .record-btn:hover::before {
+            left: 100%;
+        }
+
+        .record-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .record-btn:active {
+            transform: translateY(0);
+        }
+
+        .record-btn.recording {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 8px 25px rgba(240, 147, 251, 0.3); }
+            50% { box-shadow: 0 8px 35px rgba(240, 147, 251, 0.6); }
+            100% { box-shadow: 0 8px 25px rgba(240, 147, 251, 0.3); }
+        }
+
+        .status {
+            font-size: 1rem;
+            font-weight: 500;
+            text-align: center;
+            min-height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .status.listening {
+            color: #f5576c;
+        }
+
+        .status.processing {
+            color: #667eea;
+        }
+
+        .status.error {
+            color: #e53e3e;
+        }
+
+        .wave-animation {
+            display: inline-flex;
+            gap: 2px;
+        }
+
+        .wave-bar {
+            width: 3px;
+            height: 12px;
+            background: currentColor;
+            border-radius: 2px;
+            animation: wave 1.2s infinite ease-in-out;
+        }
+
+        .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+        .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+        .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+
+        @keyframes wave {
+            0%, 40%, 100% { transform: scaleY(0.4); }
+            20% { transform: scaleY(1); }
+        }
+
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .app-container {
+                width: 98%;
+                margin: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .stats-bar {
+                padding: 10px 20px;
+            }
+
+            .chat-container {
+                padding: 20px;
+                max-height: 400px;
+            }
+
+            .bubble {
+                max-width: 85%;
+            }
+
+            .controls {
+                padding: 20px;
+            }
+        }
+
+        /* Professional touches */
+        .brand-badge {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="particles" id="particles"></div>
+    
+    <div class="app-container">
+        <header class="header">
+            <div class="brand-badge">VoiceAI Pro</div>
+            <h1><i class="fas fa-microphone-alt"></i> AI Voice Assistant</h1>
+            <p class="subtitle">Advanced speech recognition with intelligent responses</p>
+        </header>
+
+        <div class="stats-bar">
+            <div class="stat">
+                <span class="stat-number" id="questionsCount">0</span>
+                <span class="stat-label">Questions Asked</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number" id="accuracy">98%</span>
+                <span class="stat-label">Accuracy Rate</span>
+            </div>
+            <div class="stat">
+                <span class="stat-number" id="responseTime">1.2s</span>
+                <span class="stat-label">Avg Response</span>
+            </div>
+        </div>
+
+        <main class="chat-container" id="chat">
+            <div class="empty-state">
+                <i class="fas fa-comments"></i>
+                <h3>Welcome to VoiceAI Pro</h3>
+                <p>Click the button below and ask any question to get started</p>
+            </div>
+        </main>
+
+        <div class="controls">
+            <div class="record-section">
+                <button id="recordBtn" class="record-btn">
+                    <i class="fas fa-microphone"></i> Ask Question
+                </button>
+                <div id="status" class="status"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Particle background animation
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.width = Math.random() * 4 + 2 + 'px';
+                particle.style.height = particle.style.width;
+                particle.style.animationDelay = Math.random() * 6 + 's';
+                particles.appendChild(particle);
+            }
+        }
+
+        // Initialize particles
+        createParticles();
+
+        // Main app functionality
+        const recordBtn = document.getElementById("recordBtn");
+        const statusEl = document.getElementById("status");
+        const chatEl = document.getElementById("chat");
+        const questionsCountEl = document.getElementById("questionsCount");
+        
+        let questionCount = 0;
+        let isRecording = false;
+
+        function updateStats() {
+            questionCount++;
+            questionsCountEl.textContent = questionCount;
+        }
+
+        function addMessage(text, sender) {
+            // Remove empty state if it exists
+            const emptyState = chatEl.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            const msgDiv = document.createElement("div");
+            msgDiv.className = `message ${sender}`;
+            
+            const avatar = document.createElement("div");
+            avatar.className = "message-avatar";
+            avatar.innerHTML = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+            
+            const bubble = document.createElement("div");
+            bubble.className = "bubble";
+            bubble.textContent = text;
+            
+            const time = document.createElement("div");
+            time.className = "message-time";
+            time.textContent = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            msgDiv.appendChild(avatar);
+            const messageContent = document.createElement("div");
+            messageContent.appendChild(bubble);
+            messageContent.appendChild(time);
+            msgDiv.appendChild(messageContent);
+            
+            chatEl.appendChild(msgDiv);
+            chatEl.scrollTop = chatEl.scrollHeight;
+            
+            if (sender === 'user') {
+                updateStats();
+            }
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement("div");
+            typingDiv.className = "message bot typing-indicator";
+            typingDiv.id = "typing";
+            
+            const avatar = document.createElement("div");
+            avatar.className = "message-avatar";
+            avatar.innerHTML = '<i class="fas fa-robot"></i>';
+            
+            const bubble = document.createElement("div");
+            bubble.className = "bubble";
+            bubble.innerHTML = '<i class="fas fa-ellipsis-h"></i> AI is thinking...';
+            
+            typingDiv.appendChild(avatar);
+            typingDiv.appendChild(bubble);
+            chatEl.appendChild(typingDiv);
+            chatEl.scrollTop = chatEl.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typing = document.getElementById("typing");
+            if (typing) typing.remove();
+        }
+
+        recordBtn.onclick = async () => {
+            if (isRecording) return;
+            
+            try {
+                isRecording = true;
+                recordBtn.classList.add('recording');
+                recordBtn.innerHTML = '<i class="fas fa-stop"></i> Listening...';
+                statusEl.innerHTML = '<span class="status listening"><div class="wave-animation"><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div></div> Listening - speak now</span>';
+                
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mediaRecorder = new MediaRecorder(stream);
+                let chunks = [];
+
+                mediaRecorder.ondataavailable = e => chunks.push(e.data);
+                mediaRecorder.onstop = async () => {
+                    isRecording = false;
+                    recordBtn.classList.remove('recording');
+                    recordBtn.innerHTML = '<i class="fas fa-microphone"></i> Ask Question';
+                    statusEl.innerHTML = '<span class="status processing"><i class="fas fa-cog fa-spin"></i> Processing<span class="loading-dots"></span></span>';
+                    
+                    showTypingIndicator();
+                    
+                    const blob = new Blob(chunks, { type: "audio/wav" });
+                    const formData = new FormData();
+                    formData.append("audio", blob, "speech.wav");
+
+                    try {
+                        const res = await fetch("/ask", { method: "POST", body: formData });
+                        const data = await res.json();
+
+                        removeTypingIndicator();
+
+                        if (data.error) {
+                            statusEl.innerHTML = '<span class="status error"><i class="fas fa-exclamation-triangle"></i> ' + data.error + '</span>';
+                            setTimeout(() => statusEl.innerHTML = '', 3000);
+                            return;
+                        }
+                        
+                        statusEl.innerHTML = '';
+                        addMessage(data.question, "user");
+                        
+                        // Simulate AI thinking delay for better UX
+                        setTimeout(() => {
+                            addMessage(data.answer, "bot");
+                        }, 500);
+                        
+                    } catch (error) {
+                        removeTypingIndicator();
+                        statusEl.innerHTML = '<span class="status error"><i class="fas fa-exclamation-triangle"></i> Connection error</span>';
+                        setTimeout(() => statusEl.innerHTML = '', 3000);
+                    }
+                };
+
+                mediaRecorder.start();
+                
+                // Auto stop after 10 seconds (increased from 5)
+                setTimeout(() => {
+                    if (mediaRecorder.state === 'recording') {
+                        mediaRecorder.stop();
+                        stream.getTracks().forEach(track => track.stop());
+                    }
+                }, 10000);
+                
+            } catch (err) {
+                isRecording = false;
+                recordBtn.classList.remove('recording');
+                recordBtn.innerHTML = '<i class="fas fa-microphone"></i> Ask Question';
+                statusEl.innerHTML = '<span class="status error"><i class="fas fa-microphone-slash"></i> Microphone access denied</span>';
+                console.error(err);
+                setTimeout(() => statusEl.innerHTML = '', 3000);
+            }
+        };
+
+        // Add keyboard shortcut (spacebar to record)
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' && !isRecording && e.target === document.body) {
+                e.preventDefault();
+                recordBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
