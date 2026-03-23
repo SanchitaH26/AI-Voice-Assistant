@@ -25,7 +25,7 @@ def speech_to_text_hf(audio_bytes: bytes) -> str:
 # 2. Answering Model – Open & Fact-Friendly
 # --------------------------------------------------
 # flan-t5-large is fully public, great for Q&A
-qa_pipeline = pipeline("text2text-generation", model="google/flan-t5-large")
+qa_pipeline = pipeline("text-generation", model="google/flan-t5-large")
 
 def get_answer(question: str) -> str:
     prompt = f"Answer factually and concisely: {question}"
